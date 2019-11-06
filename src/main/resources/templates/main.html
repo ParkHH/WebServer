@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/layout :: head">
+<!-- jvectormap -->
+<link rel="stylesheet"
+	href="/bower_components/jvectormap/jquery-jvectormap.css">
+</head>
+
+<script>
+	document.title = "Main Page";
+</script>
+<body class="hold-transition skin-blue sidebar-mini">
+
+	<!-- 스타일 추가 로드 -->
+
+	<div class="wrapper">
+		<div th:replace="fragments/layout :: header"></div>
+		<div th:replace="fragments/layout :: menu-sidebar"></div>
+
+		<!-- Content Wrapper. Contains page content -->
+		<div class="content-wrapper">
+			<!-- Content Header (Page header) -->
+			<section class="content-header">
+				<h1>
+					Main Page
+				</h1>
+				<ol class="breadcrumb">
+					<li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+					<li class="active">Main Page</li>
+				</ol>
+			</section>
+
+			<!-- Main content -->
+			<section class="content" id="dashboardContent">
+				<div class="row">
+					<div class="col-md-6">
+						<div class="box box-primary">
+							<div class="box-header with-border">
+								<h3 class="box-title" style="font-weight: bolder"><a href="/admin/menu/generalDocumentBoard">자료실 > 문서자료실 > 일반 문서 관리 글 목록</a></h3>
+							</div>
+							<div class="box-body">
+								<table class="table table-bordered table-hover table-striped text-center" id="generalDocumentBoard">
+									<thead>
+										<th>No.</th>	
+										<th>파일명</th>	
+										<th>등록자 ID</th>	
+										<th>등록일</th>	
+										<th>다운로드 수</th>
+										<th style="display:none;">seq</th>
+									</thead>
+									<tbody>
+										
+									</tbody>
+								</table>
+								<div class="row">
+									<div id="pageNumber1" style="float:left; text-align:center; width:100%; margin-top:10px; font-size:30px;"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="box box-primary">
+							<div class="box-header with-border">
+								<h3 class="box-title" style="font-weight: bolder"><a href="/admin/menu/templateBoard">자료실 > 문서자료실 > Template 관리 글 목록</a></h3>
+							</div>
+							<div class="box-body">
+								<table class="table table-bordered table-hover table-striped text-center" id="TemplateBoard">
+									<thead>
+										<th>No.</th>	
+										<th>파일명</th>	
+										<th>등록자 ID</th>	
+										<th>등록일</th>	
+										<th>다운로드 수</th>
+										<th style="display:none;">seq</th>
+									</thead>
+									<tbody>
+										
+									</tbody>
+								</table>
+								<div class="row">
+									<div id="pageNumber2" style="float:left; text-align:center; width:100%; margin-top:10px; font-size:30px;"></div>
+								</div>
+							</div>
+						</div>	
+					</div>	
+				</div>				
+			</section>
+			<!-- /.content -->
+		</div>
+
+		<div th:replace="fragments/layout :: footer"></div>
+		<div th:replace="fragments/layout :: expire-warning"></div>
+
+		<!-- Plotly.js -->
+		<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+		<script src="/js/paging.js"></script>
+		<script>						
+			$(function(){
+				checkSession();	
+				getTemplateBoardInfo();
+				getGeneralDocumentBoardInfo();
+			});
+			
+			
+			//---------------------------------------------------------------------------------------------------------------------------
+			// 일반 문서 게시판 정보 가져오기
+			//---------------------------------------------------------------------------------------------------------------------------			
+			var currentPage = 1;	// 현재 보고 있는 Page 번호
+			var pageSize = 10;		// 한 Page 에 보여질 Data 의 개수
+			var curPos = 0;			// Server 에서 받은 DataList 에서 현재 Page 번째에서 보여줘야할 Data 시작점 Data 의 Index
+
+			
+			
+			function getGeneralDocumentBoardInfo(){
+				$.ajax({
+					url:"/admin/generalDocument/all",
+					type:"get",
+					success:function(result){
+						var json = JSON.parse(result);
+						var dataList = json.generalDocumentList;
+						var dataLength = dataList.length;
+						var num = dataLength;
+						
+						if(dataLength == 0){
+							$($("#generalDocumentBoard").find("tbody")).append("<tr><td colspan='5'><b>게시글이 없습니다.</b></td></tr>");
+							return;
+						}
+						pagination2(dataLength, currentPage, "#pageNumber1", "#generalDocumentBoard", dataList);			// Paging 처리 변수 초기화 및 Pagination 표현
+						for(var i=0; i<pageSize; i++){
+							if(num<1){
+								break;
+							}
+							var data = dataList[curPos++];
+							$($("#generalDocumentBoard").find("tbody")).append("<tr><td>"+num--+"</td><td>"+data.file_name+"</td><td>"+data.uploader+"</td><td>"+data.date+"</td><td>"+data.hit+"</td></tr>");
+						}
+					}
+				});
+			}
+			
+			
+			
+			
+			//---------------------------------------------------------------------------------------------------------------------------
+			// 템플릿 관리 게시판 정보 가져오기
+			//---------------------------------------------------------------------------------------------------------------------------
+			var currentPage2 = 1;	// 현재 보고 있는 Page 번호
+			var pageSize2 = 10;		// 한 Page 에 보여질 Data 의 개수
+			var curPos2 = 0;			// Server 에서 받은 DataList 에서 현재 Page 번째에서 보여줘야할 Data 시작점 Data 의 Index
+									
+			function getTemplateBoardInfo(){
+				$.ajax({
+					url:"/admin/template/all",
+					type:"get",
+					success:function(result){
+						var json = JSON.parse(result);
+						var dataList = json.fileList;
+						var dataLength = dataList.length;
+						var num = dataLength;
+						
+						if(dataLength == 0){
+							$($("#TemplateBoard").find("tbody")).append("<tr><td colspan='5'><b>게시글이 없습니다.</b></td></tr>");
+							return;
+						}
+						pagination2(dataLength, currentPage2, "#pageNumber2", "#TemplateBoard", dataList);			// Paging 처리 변수 초기화 및 Pagination 표현
+						for(var i=0; i<pageSize2; i++){
+							if(num<1){
+								break;
+							}
+							var data = dataList[curPos2++];
+							$($("#TemplateBoard").find("tbody")).append("<tr><td>"+num--+"</td><td>"+data.file_name+"</td><td>"+data.uploader+"</td><td>"+data.date+"</td><td>"+data.hit+"</td></tr>");
+						}
+					}
+				});
+			}											
+		</script>
+	</div>
+</body>
+</html>

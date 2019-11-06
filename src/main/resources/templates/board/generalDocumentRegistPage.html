@@ -1,0 +1,165 @@
+<!-- 일반 문서 자료실 HTML File 입니다. -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/layout :: head">
+	<!-- html head area -->
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+
+<div class="wrapper">
+	<div th:replace="fragments/layout :: header"></div>
+	<div th:replace="fragments/layout :: menu-sidebar"></div>
+
+	<div class="content-wrapper" id="accountListContent">
+		<div th:replace="fragments/layout :: content-header"></div>
+
+		<!-- Main content -->
+		<section class="content">
+			<!-- 검색 Area -->
+			<div class="row">
+				<div class="col-md-12">
+					<div class="box box-primary">
+<!-- 						<div class="box-header with-border"> -->
+<!-- 							<h3 class="box-title"><i class="fa fa-search"></i>검색</h3> -->
+<!-- 						</div> -->
+
+						<div class="box-body form-horizontal">
+							<div class="row form-group-lg" style="padding:40px;">
+								
+								  <form id="GeneralDocumentUploadForm" enctype="multipart/form-data">
+								    <input type="text" id="FileName" name="FileName" placeholder="FileName" style="font-size:25px;">								   
+								    <input type="text" id="Uploader" name="Uploader" placeholder="Uploader" style="font-size:25px;" readonly/><br><br>
+								    <fieldset>
+								    <legend style="font-size:25px;">Upload 파일 선택</legend>
+								    <input type="file" id="uploadFile" name="uploadFile" placeholder="Choose UploadFile" style="font-size:15px;"><br>
+								    </fieldset>						
+								    <label for="subject"><h2>Description</h2></label>
+								    <textarea id="description" name="description" placeholder="Write something.." style="height:200px"></textarea>
+								
+								    <input type="button" value="등록" name="bt_regist" style="background-color:black; font-size:15px; font-weight:bold;">
+								    <input type="button" value="돌아가기" name="bt_cancel" style="background-color:black; font-size:15px; font-weight:bold;">
+								  </form>
+					
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- 상세 Area -->
+		</section>
+	</div>
+
+	<div th:replace="fragments/layout :: footer"></div>
+	<div th:replace="fragments/layout :: expire-warning"></div>
+</div>
+<style>
+	body {font-family: Arial, Helvetica, sans-serif;}
+	* {box-sizing: border-box;}
+	
+	input[type=text], select, textarea {
+	  width: 100%;
+	  padding: 12px;
+	  border: 1px solid #ccc;
+	  border-radius: 4px;
+	  box-sizing: border-box;
+	  margin-top: 6px;
+	  margin-bottom: 16px;
+	  resize: vertical;
+	}
+	
+	input[type=button] {
+	  background-color: #4CAF50;
+	  color: white;
+	  padding: 12px 20px;
+	  border: none;
+	  border-radius: 4px;
+	  cursor: pointer;
+	  width:8%;
+	  
+	}
+	
+	input[type=submit]:hover {
+	  background-color: #45a049;
+	}
+	
+	.container {
+	  border-radius: 5px;
+	  background-color: #f2f2f2;
+	  padding: 20px;
+	}
+</style>
+<script>
+	$(function(){
+		checkSession();
+		init();
+	});
+	
+	
+	//----------------------------------------------------
+	// 초기화 함수
+	//----------------------------------------------------
+	function init(){
+		$("input[name='bt_regist']").click(function(){
+			regist();
+		});
+		$("input[name='bt_cancel']").click(function(){
+			location.href="/admin/menu/generalDocumentBoard";		// 이전 Page 로 돌아가기
+		});
+	}
+	
+	
+	
+	//-----------------------------------------------------
+	// 일반 문서 등록!
+	//-----------------------------------------------------
+	function regist(){
+		var file_name = $("input[name='FileName']").val();
+		var uploader = $("input[name='Uploader']").val();
+		var description = $("#description").val();
+		
+		if(file_name == ""){
+			alert("파일명은 필수 입력 사항입니다.");
+			$("input[name='FileName']").css("background-color", "red");
+			$("input[name='FileName']").focus();
+			var fileName = document.getElementById("FileName");
+			fileName.addEventListener('click', function(event){
+				$("input[name='FileName']").css("background-color", "white");
+			});
+			
+			return;
+		}
+		
+		//**************************************
+		//upload 요청!
+		//**************************************
+		$("#GeneralDocumentUploadForm").attr({
+			action:"/admin/generalDocument/upload",
+			method:"post"
+		});
+		$("#GeneralDocumentUploadForm").submit();
+	}
+</script>
+
+
+<!-- Page import scripts -->
+
+<!-- Page script -->
+<script>
+var pageNum = 1;
+var onLoad = true;
+
+var app = new Vue({
+	name: 'EmployeeList',
+	el: '#accountListContent',
+	data: {
+		pageHeader: {
+			title: '일반 문서 등록',
+			description: '필요한 문서를 Upload 하여 어디서든 Download 받아 사용하세요.',
+			breadcrumb: '<li><a href="/dashboard"><i class="fa fa-home"></i> Home</a></li><li>자료실</li><li class="active">문서자료실</li>'
+		}
+	}
+});
+</script>
+</body>
+</html>

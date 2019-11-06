@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Gbridge</title>
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+<!-- Bootstrap -->
+<link type="text/css" rel="stylesheet" href="/css/bootstrap.min.css" />
+<!-- Font Awesome -->
+<link type="text/css" rel="stylesheet" href="/font-awesome/css/font-awesome.min.css" />
+<!-- iCheck -->
+<link type="text/css" rel="stylesheet" href="/plugins/iCheck/square/blue.css" />
+<!-- AdminLTE -->
+<link type="text/css" rel="stylesheet" href="/dist/css/AdminLTE.min.css" />
+
+<link type="text/css" rel="stylesheet" href="/css/common.css">
+
+<!-- Automatically provides/replaces `Promise` if missing or broken. -->
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.js"></script>
+
+<!-- Minified version of `es6-promise-auto` below. -->
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+
+<!-- js -->
+<script src="/js/vue.min.js"></script>
+
+<style>
+	img.GBridge {
+	  width: 70%;
+	  border-radius: 5%;
+	}
+</style>
+</head>
+
+<body class="hold-transition login-page" style="overflow: hidden">
+	<div class="login-box" id="app">		
+		<div class="login-box-body">
+			<div class="login-logo">
+			<img src="/images/G_Bridge.jpg" alt="GBridge" class="GBridge">
+			</div>
+			<!-- /.login-logo -->
+			
+			<p class="h1 login-box-msg"><b>L O G I N</b></p>
+			<div class="form-group-lg has-feedback">
+				<input type="text" class="form-control input-lg eng" name="username" id="username" placeholder="아이디를 입력하세요." v-model="accountId" />
+				<span class="glyphicon glyphicon-user form-control-feedback"></span>
+			</div>
+			<br>
+			<div class="form-group-lg has-feedback">
+				<input type="password" class="form-control input-lg" name="password" id="passwd" placeholder="비밀번호를 입력하세요." v-on:KeyDown="checkKey" v-model="accountPasswd" />
+				<span class="glyphicon glyphicon-lock form-control-feedback"></span>
+			</div>
+			<br>
+			<div class="form-group-lg has-feedback">	
+				<input type="password" class="form-control input-lg eng" name="user_code" id="user_code" v-on:keydown="checkKey" placeholder="OTP 입력하세요."/><br>
+				<input type="hidden" class="form-control input-lg eng" name="encodedKey" id="encodedKey" />
+				<span class="glyphicon glyphicon-lock form-control-feedback"></span>
+			</div>			
+			<br>
+			<div class="row form-group-lg">
+				<div class="col-xs-8" style="padding-left:40px;">					
+					<div class="checkbox icheck">
+						<label>
+							<input type="checkbox" id="saveId" name="saveId"/>
+							<span class="h4">아이디 저장</span>
+						</label>
+					</div>
+				</div>
+				<!-- /.col -->
+				<div class="col-xs-4">
+					<button type="button" v-on:click="goLogin" class="btn-lg btn-primary btn-block" style="background-color:gray">로그인</button>
+				</div>
+				<!-- /.col -->
+			</div>
+		</div>
+		<!-- /.login-box-body -->
+	</div>
+	<!-- /.login-box -->
+	
+	
+	<!-- Main Footer -->
+	<footer class="main-footer" style="margin-left: 0px; position: fixed; bottom: 0px; width: 100%; text-align: center;">
+		<!-- Default to the left -->
+		<strong>Copyright &copy; 2019 Gbridge.</strong> All rights reserved.
+	</footer>
+
+	<div class="modal modal-warning show-alert" id="modal-alert">
+		<div class="modal-dialog w-400px">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title" id="alert-title"></h4>
+				</div>
+				<div class="modal-body">
+					<div class="row">
+						<div class="text-center"><h4 id="alert-msg"></h4></div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline w-100px" id="alert_bt" data-dismiss="show-alert">확인</button>
+				</div>
+			</div>
+			<!-- /.modal-content -->
+		</div>
+		<!-- /.modal-dialog -->
+	</div>
+	<!-- /.modal -->
+
+	<!-- jQuery 3 -->
+	<script src="/js/jquery-3.1.1.min.js"></script>
+	<!-- Bootstrap 3.3.7 -->
+	<script src="/js/bootstrap.min.js"></script>
+	<!-- iCheck -->
+	<script src="/plugins/iCheck/icheck.min.js"></script>
+	<!--<script src="https://unpkg.com/axios/dist/axios.min.js"></script>-->
+	<script src="/js/axios.min.js"></script>
+	<script src="/js/common.js"></script>
+	<script th:inline="javascript">
+	$(document).ready(function(){
+		$('input').iCheck({
+			checkboxClass: 'icheckbox_square-red',
+			radioClass: 'iradio_square-red',
+			increaseArea: '20%' // optional
+		});
+
+		var $saveId = $("#saveId");
+		$saveId.on("ifChecked", function() {
+			saveCookie("isSaveId", true);
+		});
+		$saveId.on("ifUnchecked", function() {
+			saveCookie("isSaveId", false);
+		});
+
+		// 화면을 로딩시 수행할 정보
+		if (getCookie("isSaveId") && getCookie("isSaveId") === "true") {
+			$("#saveId").iCheck("check");
+			login.accountId = getCookie("saveId");
+			$('input[name="password"]').focus();
+		}
+		else {
+			$('input[name="username"]').focus();
+		}
+
+		$(':button').click(function(evnet){
+			if($(this).data('dismiss')){
+				$('.' + $(this).data('dismiss')).hide();
+			}else if($(this).data('show')){
+				$('#' + $(this).data('show')).show();
+			}
+		});
+		
+		getSerialNumberAndUrl();		// OTP 관련 SerialKey, 요청 url 생성		
+	});
+	
+	
+	//---------------------------------------------------
+	// OTP 인증에 필요한 SerialKey 와 url 구하기
+	//---------------------------------------------------
+	function getSerialNumberAndUrl(){
+		$.ajax({
+			url:'/admin/otp/request',
+			type:'get',
+			success:function(result){
+				var json = JSON.parse(result);
+				var encodedKey = json.encodedKey;
+				var url = json.url;
+				$("#encodedKey").val(encodedKey);				
+			}
+		});
+	}	
+
+	var login = new Vue({
+		el: '#app',
+		name: 'Login',
+		data:{
+			token: '',
+			accountId: '',
+			accountPasswd: '',
+			otpNum:'',
+			otpFlag:'true'
+		},
+		watch:{
+
+		},
+		methods: {
+			goLogin: function() {
+				this.otpNum = $("#user_code").val();
+				
+				if (this.accountId=='') {
+					showAlert("로그인", "사용자ID를 입력해주세요.");
+					return;
+				}
+				if (this.accountPasswd=='') {
+					showAlert("로그인", "비밀번호를 입력해주세요.");
+					return;
+				}		
+				if (this.otpNum=='') {
+					showAlert("로그인", "OTP 를 입력해주세요.");
+					return;
+				}
+				// cookie
+				if ($('input[name="saveId"]').is(':checked')) {
+					saveCookie("saveId", $('input[name="username"]').val());
+				}
+				else {
+					deleteCookie("saveId", $('input[name="username"]').val());
+				}
+				axios({
+					method: 'post',
+					url: '/admin/login',
+					params: {
+						id: this.accountId,
+						pwd: this.accountPasswd,
+						otpNum: this.otpNum,
+						encodedKey:$("#encodedKey").val(),
+						otpFlag:this.otpFlag,
+						loginProgram:"WEB"
+					}
+				}).then(function(response){		
+					var result = response.data.codeCheckResult;				
+					if(result != null){
+						if(response.data.codeCheckResult){
+							location.replace('/admin/main');
+						}else{
+							showAlert('로그인','OTP 번호가 유효하지 않습니다.', 'warning');							
+						}
+					}else{
+						showAlert('로그인', '로그인 정보가 올바르지 않습니다.<br/>입력 내용을 확인하신 후 다시 시도해 주세요.', 'warning');
+					}
+				}).catch(function(e){
+					if(e.response.status == 500) {
+						showAlert('로그인', '로그인 정보가 올바르지 않습니다.<br/>입력 내용을 확인하신 후 다시 시도해 주세요.', 'warning');
+					}
+					else {
+						showAlert('로그인', '로그인에 실패하였습니다.<br/>관리자에게 문의해 주세요.', 'danger');
+					}
+				});
+
+				$("#username").focus();
+			},
+			checkKey: function(event){
+				if(event.keyCode == 13) {
+					this.goLogin();
+				}
+			}
+		},
+		mounted: function(){
+			this.accountPasswd = '1!';
+		}
+	});
+</script>
+</body>
+</html>

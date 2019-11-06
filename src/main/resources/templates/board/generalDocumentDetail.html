@@ -1,0 +1,304 @@
+<!-- 일반 문서 자료실 HTML File 입니다. -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/layout :: head">
+	<!-- html head area -->
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+
+<div class="wrapper">
+	<div th:replace="fragments/layout :: header"></div>
+	<div th:replace="fragments/layout :: menu-sidebar"></div>
+
+	<div class="content-wrapper" id="accountListContent">
+		<div th:replace="fragments/layout :: content-header"></div>
+
+		<!-- Main content -->
+		<section class="content">
+			<!-- 검색 Area -->
+			<div class="row">
+				<div class="col-md-12">
+					<div class="box box-primary">
+<!-- 						<div class="box-header with-border"> -->
+<!-- 							<h3 class="box-title"><i class="fa fa-search"></i>검색</h3> -->
+<!-- 						</div> -->
+
+						<div class="box-body form-horizontal">
+							<div class="row form-group-lg" style="padding:40px;">
+								
+								  <form id="GeneralDocumentDetailForm" enctype="multipart/form-data">
+								  	<input type="hidden" id="updateResult" name="updateResult" th:value="${updateResult}">
+								  	<input type="hidden" id="ACNT_ID" name="ACNT_ID" th:value=${session.ACNT_ID}>
+								  	<input type="hidden" id="seq" name="seq" th:value=${seq}>
+								  	<input type="hidden" id="path" name="path">
+								  	<label style="font-size:25px;">▣ 파일명</label>
+								    <input type="text" id="FileName" name="FileName" placeholder="FileName" style="font-size:25px;" th:value=${fileName}>								   
+								    <label style="font-size:25px;">▣ 작성자</label>
+								    <input type="text" id="Uploader" name="Uploader" placeholder="Uploader" style="font-size:25px;" readonly/><br><br>
+								    <fieldset>
+								    <legend id="lb_fileInfo" style="font-size:25px; font-weight:bold;">▣ 파일 위치</legend>
+								    <input type="button" name="bt_editUploadedFile" value="변경" style="font-size:15px; font-weight:bold; width:5%; margin-right:1%;">
+								    <input type="text" id="uploadedFile" name="uploadedFile" style="font-size:15px; width:90%;" readonly>								
+								    <legend id="lb_fileInfo2" style="font-size:25px; font-weight:bold; display:none;">▣ 파일 선택</legend>
+								    <input type="button" name="bt_editUploadedFileCancel" value="취소" style="font-size:15px; font-weight:bold; display:none; margin-bottom:1%; width:5%;">
+								    <input type="file" id="uploadFile" name="uploadFile" placeholder="Choose UploadFile" style="font-size:15px; display:none;"><br>
+								    </fieldset>				
+								    <br><br>		
+								    <label for="subject" style="font-size:25px;">▣ 상세 내용</label>
+								    <textarea id="description" name="description" placeholder="Write something.." style="height:200px"></textarea>
+								
+								    <input type="button" value="수정" name="bt_edit" style="background-color:black; font-size:15px; font-weight:bold;">
+								    <input type="button" value="삭제" name="bt_delete" style="background-color:black; font-size:15px; font-weight:bold;">
+								    <input type="button" value="돌아가기" name="bt_cancel" style="background-color:black; font-size:15px; font-weight:bold;">
+								  </form>
+					
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- 상세 Area -->
+		</section>
+	</div>
+
+	<div th:replace="fragments/layout :: footer"></div>
+	<div th:replace="fragments/layout :: expire-warning"></div>
+</div>
+<style>
+	body {font-family: Arial, Helvetica, sans-serif;}
+	* {box-sizing: border-box;}
+	
+	input[type=text], select, textarea {
+	  width: 100%;
+	  padding: 12px;
+	  border: 1px solid #ccc;
+	  border-radius: 4px;
+	  box-sizing: border-box;
+	  margin-top: 6px;
+	  margin-bottom: 16px;
+	  resize: vertical;
+	}
+	
+	input[type=button] {
+	  background-color: #4CAF50;
+	  color: white;
+	  padding: 12px 20px;
+	  border: none;
+	  border-radius: 4px;
+	  cursor: pointer;
+	  width:8%;
+	  
+	}
+	
+	input[type=submit]:hover {
+	  background-color: #45a049;
+	}
+	
+	.container {
+	  border-radius: 5px;
+	  background-color: #f2f2f2;
+	  padding: 20px;
+	}
+</style>
+<script>
+	$(function(){
+		checkSession();
+		init();
+		checkUpdateResult();
+		getGeneralDocumentDetail();
+	});
+	
+	
+	
+	//----------------------------------------------------------
+	// 초기화 함수
+	//----------------------------------------------------------
+	function init(){
+		$("input[name='bt_edit']").click(function(){
+			edit();
+		});
+		$("input[name='bt_delete']").click(function(){
+			del();
+		});
+		$("input[name='bt_cancel']").click(function(){
+			location.href="/admin/menu/generalDocumentBoard";
+		});
+		$("input[name='bt_editUploadedFile']").click(function(){
+			editUploadedFile();
+		});
+		$("input[name='bt_editUploadedFileCancel']").click(function(){
+			editUploadedFileCancel();
+		});
+	}
+	
+	
+	
+	//--------------------------------------------------------
+	// 파일변경 버튼 Click
+	//--------------------------------------------------------
+	function editUploadedFile(){				
+		$("#lb_fileInfo").css("display", "none");
+		$("input[name='bt_editUploadedFile']").css("display", "none");
+		$("input[name='uploadedFile']").css("display", "none");
+		
+		$("#lb_fileInfo2").css("display", "block");
+		$("input[name='bt_editUploadedFileCancel']").css("display", "block");
+		$("input[name='uploadFile']").css("display", "block");
+	}
+	
+	
+	
+	//--------------------------------------------------------
+	// 파일변경 버튼 Click 취소
+	//--------------------------------------------------------
+	function editUploadedFileCancel(){				
+		$("#lb_fileInfo").css("display", "block");
+		$("input[name='bt_editUploadedFile']").css("display", "block");
+		$("input[name='uploadedFile']").css("display", "block");
+		
+		$("#lb_fileInfo2").css("display", "none");
+		$("input[name='bt_editUploadedFileCancel']").css("display", "none");
+		$("input[name='uploadFile']").css("display", "none");
+	}
+	
+	
+	
+	
+	//--------------------------------------------------------
+	// 수정 성공여부에 따라 안내문구 출력
+	//--------------------------------------------------------
+	function checkUpdateResult(){
+		var updateResult = $("#updateResult").val();
+		if(updateResult>0){
+			alert("문서 정보 수정 성공!");
+		}
+	}
+
+	
+	//----------------------------------------------------
+	// 문서 내용 가져오기
+	// * 동작시 필요 Data
+	//		1) fileName	 -> upload 시 User 가 입력한 FileName
+	//		2) seq		-> upload 된 Data 의 key
+	//----------------------------------------------------
+	function getGeneralDocumentDetail(){
+		var ACNT_ID = $("#ACNT_ID").val().trim();
+
+		$.ajax({
+			url:"/admin/generalDocument/detail",
+			type:"get",
+			data:{
+				fileName:$("input[name='FileName']").val(),
+				seq:$("input[name='seq']").val()
+			},
+			success:function(result){
+				var json = JSON.parse(result);
+				$("#path").val(json.path);
+				$("#uploadedFile").val(json.path);
+				$("#description").val(json.dscpt);
+				
+				//****************************************
+				// 글 작성자 아닐경우 수정 삭제 차단
+				//****************************************
+				if(ACNT_ID != json.uploader){
+					$("#description").prop('readonly', true);
+					$("input[name='bt_edit']").css("display", "none");
+					$("input[name='bt_delete']").css("display", "none");
+				}
+			}
+		});
+	}
+	
+	
+	
+	
+	//-----------------------------------------------------
+	// 일반 문서 수정!
+	//-----------------------------------------------------
+	function edit(){
+		if(!confirm("수정하시겠어요?")){
+			return;
+		}
+		var file_name = $("input[name='FileName']").val();
+		if(file_name == ""){
+			alert("파일명은 필수 입력 사항입니다.");
+			$("input[name='FileName']").css("background-color", "red");
+			$("input[name='FileName']").focus();
+			var fileName = document.getElementById("FileName");
+			fileName.addEventListener('click', function(event){
+				$("input[name='FileName']").css("background-color", "white");
+			});
+			
+			return;
+		}
+		
+		//**************************************
+		//upload 요청!
+		//**************************************
+		$("#GeneralDocumentDetailForm").attr({
+			action:"/admin/generalDocument/edit",
+			method:"post"
+		});
+		$("#GeneralDocumentDetailForm").submit();
+	}
+	
+	
+	
+	
+	//------------------------------------------------------
+	// 일반 문서 삭제!!
+	//------------------------------------------------------
+	function del(){
+		if(!confirm("삭제하시겠어요?")){
+			return;
+		}
+		var seq = $("#seq").val();
+		var fileName = $("#FileName").val();
+		//alert(seq+", "+fileName);
+		
+		$.ajax({
+			url:"/admin/generalDocument/delete",
+			type:"get",
+			data:{
+				"fileName":fileName,
+				"seq":seq				
+			},
+			success:function(result){
+				var json = JSON.parse(result);
+				var deleteResult = json.resultCode;
+				if(deleteResult==-1){
+					alert("DB 에 파일 정보가 존재하지 않음!");
+				}else if(deleteResult==-2){
+					alert("디스크에 파일이 존재하지 않음!");				
+				}else if(deleteResult > 0){
+					alert("삭제 완료!");
+					location.href="/admin/menu/generalDocumentBoard";
+				}
+			}
+		});
+	}
+</script>
+
+
+<!-- Page import scripts -->
+
+<!-- Page script -->
+<script>
+var pageNum = 1;
+var onLoad = true;
+
+var app = new Vue({
+	name: 'EmployeeList',
+	el: '#accountListContent',
+	data: {
+		pageHeader: {
+			title: '일반 문서 등록',
+			description: '필요한 문서를 Upload 하여 어디서든 Download 받아 사용하세요.',
+			breadcrumb: '<li><a href="/dashboard"><i class="fa fa-home"></i> Home</a></li><li>자료실</li><li class="active">문서자료실</li>'
+		}
+	}
+});
+</script>
+</body>
+</html>

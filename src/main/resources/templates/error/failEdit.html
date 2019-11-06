@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script>
+	var updateResult = $("input[name='updateResult']").val();
+	if(!updateResult > 0){
+		alert("게시물 정보 수정 실패!");
+		location.href="/admin/menu/generalDocumentBoard";
+	}
+</script>
+</head>
+<body>
+	<input type="hidden" name="updateResult" th:value="${updateResult}">
+</body>
+</html>

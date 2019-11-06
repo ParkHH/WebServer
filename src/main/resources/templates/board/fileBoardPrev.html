@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+<style>
+	table {
+	  border-collapse: collapse;
+	  border-spacing: 0;
+	  width: 100%;
+	  border: 1px solid #ddd;
+	}
+	
+	th, td {
+	  text-align: left;
+	  padding: 16px;
+	  text-align:center;
+	}
+	
+	tr:nth-child(even) {
+	  background-color: #f2f2f2
+	}
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="/js/paging.js"></script>
+<script>
+	var totalRecode = 0;	// Server 에서 가져온 Data 의 총 개수
+	var currentPage = 1;	// 현재 보고 있는 Page 번호
+	var pageSize = 5;		// 한 Page 에 보여질 Data 의 개수
+	var totalPage = 0;		// 총 Data 를 한페이지에 보여질 Data 개수로 나누어 나온 총 페이지 개수
+	var blockSize = 10;		// 페이지를 한 화면에 몇개씩 보여줄건지 나타내는 변수
+	var firstPage = 0;		// 현재 Block 에서 제일 첫번째 Page 번호
+	var lastPage = 0;		// 현재 Block 에서 제일 마지막 Page 번호
+	var curPos = 0;			// Server 에서 받은 DataList 에서 현재 Page 번째에서 보여줘야할 Data 시작점 Data 의 Index
+	var num = 0;			// 현제 Page 에서 보여지는 Data 의 시작번째 수를 나타냄
+	var fileList = null;	// Server 에서 가져온 Data 를 전역영역 으로 끌어 올리기 위해 선언한 전역변수 (다른 Method 들도 볼 수 있게)
+	
+	$(function(){
+		getFileList();			// Upload 된 FileList 가져오기
+		getAllFileKinds();		// 모든 파일종류 항목 가져오기	For select
+		getAllProducts();		// 모든 상품정보 항목 가져오기	For	select
+		getAllCompany();		// 모든 업체정보 항목 가져오기	For select
+		$("input[name='bt_search']").click(function(){
+			search();
+		});		
+	});
+	
+	
+	//-----------------------------------------------------------------
+	// File selectAll
+	//-----------------------------------------------------------------
+	function getFileList(){
+		$.ajax({
+			url:"/template/all",
+			type:"get",
+			success:function(result){
+				var json = JSON.parse(result);			// SERVER 로 부터 받은 String JSON 으로 형변환
+				fileList = json.fileList;				// JSON 에 담긴 Data 꺼냄
+				var count = json.fileList.length;		// 총 Data 개수 구함
+				$("#totalCount").text("*전체 게시물 개수 : "+count);
+				pagination(count, currentPage);			// Paging 처리 변수 초기화 및 Pagination 표현
+				$("table > tbody").empty();				// Table 한번 비워주고
+				for(var i=0; i<pageSize; i++){			// PageSize 만큼 반복하며 Data 를 출력! (한페이지에 PageSize 만큼 출력이 되야하므로)
+					if(num<1){							// PageNumber 마다 보여지는 게시물 번호가 1보다 작아지면
+						break;							// Data 출력을 멈춤
+					}
+					var file = json.fileList[curPos++];	// 현재 Page 에 보여져야할 Data 를 Server 에서 가져와 저장한 DataList 에서 꺼냄
+					$($("table").find("tbody")).append("<tr><td>"+(num--)+"</td><td><a href=\"/template/download?file_name="+file.file_name+"&seq="+file.seq+"\">"+file.file_name+"</a></td><td>"+file.uploader
+														+"</td><td>"+file.date+"</td><td>"+file.hit+"</td><td style=\"display:none;\">"+file.seq+"</td></tr>");	// 꺼낸후 Table 에 붙힘
+				}	
+			}
+		});		
+	}
+	
+	
+	
+	//-----------------------------------------------------------------
+	// File Kind SelectAll
+	//-----------------------------------------------------------------
+	function getAllFileKinds(){
+		$.ajax({
+			url:"/template/fileKinds",	
+			type:"get",
+			success:function(result){
+				var json = JSON.parse(result);
+				var count = json.fileKindList.length;
+				for(var i=0; i<count; i++){
+					var file = json.fileKindList[i];
+					$("select[name='fileKind']").append("<option value=\""+file.CD_VLID_VAL+"\">"+file.CD_VLID_VAL+"("+file.CD_VLID_VAL_DESC+")</option>");
+				}
+			}
+		});
+	}
+	
+	
+	
+	//-----------------------------------------------------------------
+	// Product SelectAll
+	//-----------------------------------------------------------------
+	function getAllProducts(){
+		$.ajax({
+			url:"/product/all",	
+			type:"get",
+			success:function(result){
+				var json = JSON.parse(result);
+				var count = json.productList.length;
+				for(var i=0; i<count; i++){
+					var product = json.productList[i];
+					$("select[name='products']").append("<option value=\""+product.PRDT_CNMB+"\">"+product.PRDT_NM+"("+product.PRDT_CNMB+")</option>");
+				}
+			}
+		});
+	}
+	
+	
+	
+	//-----------------------------------------------------------------
+	// Company SelectAll
+	//-----------------------------------------------------------------
+	function getAllCompany(){
+		$.ajax({
+			url:"/company/all",	
+			type:"get",
+			success:function(result){
+				var json = JSON.parse(result);
+				var count = json.companyList.length;
+				for(var i=0; i<count; i++){
+					var company = json.companyList[i];
+					$("select[name='companies']").append("<option value=\""+company.CMPN_NO+"\">"+company.CMPN_NM+"("+company.CMPN_NO+")</option>");
+				}
+			}
+		});
+	}
+	
+	
+	
+	
+	
+	//-----------------------------------------------------------------
+	// Search
+	//-----------------------------------------------------------------
+	function search(){
+		var fileKind = $("select[name='fileKind']").val();
+		var product = $("select[name='products']").val();
+		var company = $("select[name='companies']").val();
+		
+		//alert(fileKind+","+product+","+company);
+		$.ajax({
+			url:"/template/search",
+			type:"get",
+			data:{
+				"fileKind":fileKind,
+				"CMPN_NO":company,
+				"PRDT_CNMB":product,
+			},
+			success:function(result){
+				var json = JSON.parse(result);
+				var count = json.fileList.length;
+				$("#totalCount").text("*전체 게시물 개수 : "+count);
+				pagination(count, currentPage);
+				$("table > tbody").empty();
+				for(var i=0; i<pageSize; i++){
+					if(count<1){
+						break;
+					}
+					var file = json.fileList[curPos++];
+					$($("table").find("tbody")).append("<tr><td>"+count+"</td><td><a href=\"/template/download?file_name="+file.file_name+"&seq="+file.seq+"\">"+file.file_name+"</a></td><td>"+file.uploader+"</td><td>"+file.date+"</td><td>"+file.hit+"</td><td style=\"display:none;\">"+file.seq+"</td></tr>");
+					count--;
+				}	
+			}
+		});
+	}
+	
+	
+	
+	
+
+	
+	
+</script>
+</head>
+<body>
+	<h3>문서 Template 자료실</h3><br><br>
+	<label><b>문서 종류</b></label>
+	<select name="fileKind" style="width:200px; height:30px; margin-bottom:10px; margin-right:15px;">
+		<option value="">----- 전 체 -----</option>
+	</select>
+	<label><b>업체</b></label>
+	<select name="companies" style="width:200px; height:30px; margin-bottom:10px; margin-right:15px;">
+		<option value="">----- 전 체 -----</option>
+	</select>
+	<label><b>상품명</b></label>
+	<select name="products" style="width:200px; height:30px; margin-bottom:10px; margin-right:15px;">
+		<option value="">----- 전 체 -----</option>
+	</select>
+	<input type="button" value="검색" name="bt_search" style="width:100px; height:30px;"/><br>
+	<p id="totalCount"></p>
+	<table>
+		<thead>
+			<th>No.</th>	
+			<th>Template File Name</th>	
+			<th>Uploader</th>	
+			<th>Date</th>	
+			<th>hit</th>
+			<th style="display:none;">seq</th>
+		</thead>
+		<tbody>
+		</tbody>
+	</table>
+	<div id="pageNumber" style="float:left; text-align:center; width:100%; margin-top:10px;">
+	</div>
+</body>
+</html>

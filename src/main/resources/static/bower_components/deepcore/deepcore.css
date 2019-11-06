@@ -1,0 +1,31 @@
+.selectedEl {
+	background-color:#cee8ff!important;
+	color:black;
+	/* color:white; */
+}
+.selectedEl td {
+	border: 1px solid #cee8ff!important;
+}
+.fontsize15px {
+	/* font-size:1.1em!important; */
+	font-size:15px;
+}
+tr {
+	cursor:pointer;
+}
+thead tr th {
+	white-space:nowrap;	
+}
+.tbody-addOn-smallBox tr td {
+	white-space:nowrap;
+	width:90px!important;
+	padding: 12px!important;
+}
+.tbody-price tr:hover {
+	transition:0.7s;
+	background-color:#cee8ff!important;
+}
+.tbody-price tr:hover td {
+	transition:0.7s;
+	border: 1px solid #cee8ff!important;
+}

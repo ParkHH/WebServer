@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/layout :: head">
+	<!-- html head area -->
+</head>
+
+<body class="hold-transition skin-blue sidebar-mini">
+
+<div class="wrapper">
+	<div th:replace="fragments/layout :: header"></div>
+	<div th:replace="fragments/layout :: menu-sidebar"></div>
+
+	<div class="content-wrapper" id="accountListContent">
+		<div th:replace="fragments/layout :: content-header"></div>
+
+		<!-- Main content -->
+		<section class="content">
+			<!-- 검색 Area -->
+			<div class="row">
+				<div class="col-md-12">
+					<div class="box box-primary">
+<!-- 						<div class="box-header with-border"> -->
+<!-- 							<h3 class="box-title"><i class="fa fa-search"></i>검색</h3> -->
+<!-- 						</div> -->
+
+						<div class="box-body form-horizontal">
+							<div class="row form-group-lg">
+								<label class="col-md-1 control-label">문서종류</label>
+								<div class="col-md-2">
+									<select class="form-control" name="fileKind" id="fileKind">
+										<option value="">전체</option>
+									</select>
+								</div>
+								<label class="col-md-1 control-label">업체</label>
+								<div class="col-md-2">
+									<select class="form-control" name="companies" id="companies">
+										<option value="">전체</option>								
+									</select>
+								</div>
+								<label class="col-md-1 control-label">상품명</label>
+								<div class="col-md-2">
+									<select class="form-control" name="products" id="products">
+										<option value="">전체</option>										
+									</select>
+								</div>
+								<div class="col-md-2" style="margin-left:-5%">
+									<button type="button" class="btn btn-primary btn-lg pull-right" name="bt_search" style="background-color:black"><i class="fa fa-search"> 검색</i></button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- 목록 Area -->
+			<div class="row" >
+				<div class="col-md-12">
+					<div class="box box-info">
+						<div class="box-body" style="width:100%;">
+							<p id="totalCount"></p>
+							<table style="width:100%; font-size:16px;">
+								<thead>
+									<tr style="height:100px;">
+										<th style="vertical-align:middle; width:5%;">No.</th>
+										<th style="vertical-align:middle; width:35%;">파일명</th>
+										<th style="vertical-align:middle; width:20%;">등록자 ID</th>
+										<th style="vertical-align:middle; width:20%;">등록일</th>
+										<th style="vertical-align:middle; width:10%;">다운로드 횟수</th>
+										<th style="vertical-align:middle; display:none;">seq</th>
+										<th style="vertical-align:middle;"></th>
+									</tr>
+								</thead>
+								<tbody>
+								</tbody>
+							</table>
+							<!-- Pagination --><br><br>
+							<div class="row">
+							<div id="pageNumber" style="float:left; text-align:center; width:100%; margin-top:10px; font-size:30px;"></div>
+							<!-- 
+								<div class="col-sm-12 text-center">
+									<b-pagination size="md" :total-rows="total_count" v-model="currentPage" :per-page="pageSize" :limit="pagenationSize"/>
+								</div>
+							 -->
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- 상세 Area -->
+		</section>
+	</div>
+
+	<div th:replace="fragments/layout :: footer"></div>
+	<div th:replace="fragments/layout :: expire-warning"></div>
+</div>
+<style>
+	table {
+	  border-collapse: collapse;
+	  border-spacing: 0;
+	  width: 100%;
+	  border: 1px solid #ddd;
+	}
+	
+	th, td {
+	  text-align: left;
+	  padding: 16px;
+	  text-align:center;
+	}
+	
+	tr:nth-child(even) {
+	  background-color: #f2f2f2
+	}
+	
+	input{
+		width: 80%;
+		height: 15%;
+		background-color:light-gray;
+		color:black;
+	}
+</style>
+<script src="/js/paging.js"></script>
+<script>
+	var totalRecode = 0;	// Server 에서 가져온 Data 의 총 개수
+	var currentPage = 1;	// 현재 보고 있는 Page 번호
+	var pageSize = 10;		// 한 Page 에 보여질 Data 의 개수
+	var totalPage = 0;		// 총 Data 를 한페이지에 보여질 Data 개수로 나누어 나온 총 페이지 개수
+	var blockSize = 10;		// 페이지를 한 화면에 몇개씩 보여줄건지 나타내는 변수
+	var firstPage = 0;		// 현재 Block 에서 제일 첫번째 Page 번호
+	var lastPage = 0;		// 현재 Block 에서 제일 마지막 Page 번호
+	var curPos = 0;			// Server 에서 받은 DataList 에서 현재 Page 번째에서 보여줘야할 Data 시작점 Data 의 Index
+	var num = 0;			// 현제 Page 에서 보여지는 Data 의 시작번째 수를 나타냄
+	var fileList = null;	// Server 에서 가져온 Data 를 전역영역 으로 끌어 올리기 위해 선언한 전역변수 (다른 Method 들도 볼 수 있게)
+	
+	$(function(){
+		checkSession();
+		init();
+		getFileList();
+		getAllFileKinds();
+		getAllProducts();
+		getAllCompany();		
+	});
+	
+	
+	//---------------------------------------------------------------
+	// 초기화 함수
+	//---------------------------------------------------------------
+	function init(){
+		$("button[name='bt_search']").click(function(){
+			search();
+		});
+	}
+	
+	
+	
+	//-----------------------------------------------------------------
+	// File selectAll
+	//-----------------------------------------------------------------
+	function getFileList(){
+		$.ajax({
+			url:"/admin/template/all",
+			type:"get",
+			success:function(result){
+				var json = JSON.parse(result);			// SERVER 로 부터 받은 String JSON 으로 형변환
+				fileList = json.fileList;				// JSON 에 담긴 Data 꺼냄
+				var count = json.fileList.length;		// 총 Data 개수 구함
+				$("#totalCount").text("*전체 게시물 개수 : "+count);
+				if(count==0){
+					$($("table").find("tbody")).append("<tr><td colspan='5'><b>게시글이 없습니다.</b></td></tr>");
+					return;
+				}
+				pagination(count, currentPage);			// Paging 처리 변수 초기화 및 Pagination 표현
+				$("table > tbody").empty();				// Table 한번 비워주고
+				for(var i=0; i<pageSize; i++){			// PageSize 만큼 반복하며 Data 를 출력! (한페이지에 PageSize 만큼 출력이 되야하므로)
+					if(num<1){							// PageNumber 마다 보여지는 게시물 번호가 1보다 작아지면
+						break;							// Data 출력을 멈춤
+					}
+					var file = json.fileList[curPos++];	// 현재 Page 에 보여져야할 Data 를 Server 에서 가져와 저장한 DataList 에서 꺼냄
+					$($("table").find("tbody")).append("<tr><td>"+(num--)+"</td><td><a href=\"/admin/template/download?file_name="+file.file_name+"&seq="+file.seq+"\">"+file.file_name+"</a></td><td>"+file.uploader
+														+"</td><td>"+file.date+"</td><td>"+file.hit+"</td><td style=\"display:none;\">"+file.seq+"</td><td style=\"width:20%;\"><input type=\"button\" name=\"bt_delete\" value=\"삭제하기\" onClick=\"runBtDelete(this)\"></td></tr>");	// 꺼낸후 Table 에 붙힘
+				}	
+			}
+		});		
+	}
+	
+	
+	//-----------------------------------------------------------------
+	// File Kind SelectAll
+	//-----------------------------------------------------------------
+	function getAllFileKinds(){
+		$.ajax({
+			url:"/admin/template/fileKinds",	
+			type:"get",
+			success:function(result){
+				var json = JSON.parse(result);
+				var count = json.fileKindList.length;
+				for(var i=0; i<count; i++){
+					var file = json.fileKindList[i];
+					$("select[name='fileKind']").append("<option value=\""+file.CD_VLID_VAL+"\">"+file.CD_VLID_VAL+"("+file.CD_VLID_VAL_DESC+")</option>");
+				}
+			}
+		});
+	}
+	
+	//-----------------------------------------------------------------
+	// Product SelectAll
+	//-----------------------------------------------------------------
+	function getAllProducts(){
+		$.ajax({
+			url:"/admin/product/all",	
+			type:"get",
+			success:function(result){
+				var json = JSON.parse(result);
+				var count = json.productList.length;
+				for(var i=0; i<count; i++){
+					var product = json.productList[i];
+					$("select[name='products']").append("<option value=\""+product.PRDT_CNMB+"\">"+product.PRDT_NM+"("+product.PRDT_CNMB+")</option>");
+				}
+			}
+		});
+	}
+	
+	
+	//-----------------------------------------------------------------
+	// Company SelectAll
+	//-----------------------------------------------------------------
+	function getAllCompany(){
+		$.ajax({
+			url:"/admin/company/all",	
+			type:"get",
+			success:function(result){
+				var json = JSON.parse(result);
+				var count = json.companyList.length;
+				for(var i=0; i<count; i++){
+					var company = json.companyList[i];
+					$("select[name='companies']").append("<option value=\""+company.CMPN_NO+"\">"+company.CMPN_NM+"("+company.CMPN_NO+")</option>");
+				}
+			}
+		});
+	}
+	
+	
+	//-----------------------------------------------------------------
+	// Search
+	//-----------------------------------------------------------------
+	function search(){
+		var fileKind = $("select[name='fileKind']").val();
+		var product = $("select[name='products']").val();
+		var company = $("select[name='companies']").val();
+		
+		//alert(fileKind+","+product+","+company);
+		$.ajax({
+			url:"/admin/template/search",
+			type:"get",
+			data:{
+				"fileKind":fileKind,
+				"CMPN_NO":company,
+				"PRDT_CNMB":product,
+			},
+			success:function(result){
+				var json = JSON.parse(result);				
+				var count = json.fileList.length;
+				$("#totalCount").text("*전체 게시물 개수 : "+count);
+				fileList = json.fileList;
+				pagination(count, currentPage);
+				$("table > tbody").empty();
+				if(count==0){
+					$($("table").find("tbody")).append("<tr><td colspan='5'><b>조회결과가 없습니다.</b></td></tr>");
+					return;
+				}
+				for(var i=0; i<pageSize; i++){
+					if(count<1){
+						break;
+					}
+					var file = json.fileList[curPos++];
+					$($("table").find("tbody")).append("<tr><td>"+count+"</td><td><a href=\"/admin/template/download?file_name="+file.file_name+"&seq="+file.seq+"\">"+file.file_name+"</a></td><td>"+file.uploader+"</td><td>"+file.date+"</td><td>"+file.hit+"</td><td style=\"display:none;\">"+file.seq+"</td><td style=\"width:10%;\"><input type=\"button\" name=\"bt_delete\" value=\"삭제하기\" onClick=\"runBtDelete(this)\"></td></tr>");
+					count--;
+				}	
+			}
+		});
+	}
+	
+	
+	
+	
+	
+	
+	//-----------------------------------------------------------------
+	// delete
+	//-----------------------------------------------------------------
+	function runBtDelete(row){
+		if(!confirm("삭제하시겠습니까?")){
+			return;
+		}
+		var bt_delete_count = $("input[name='bt_delete']").length;
+		var seq = "";
+		var file_name = "";
+		for(var a=0; a<bt_delete_count; a++){
+			if($("input[name='bt_delete']")[a] == row){				
+				seq = $($($("table").find("tr")[a+1]).find("td")[5]).text();
+				fileName =  $($($("table").find("tr")[a+1]).find("td")[1]).text();								
+			}
+		}
+		
+		$.ajax({
+			url:"/admin/template/delete",
+			type:"get",
+			data:{
+				fileName : fileName,
+				seq : seq
+			},
+			success:function(result){				
+				var json = JSON.parse(result);
+				var deleteResult = json.resultCode;
+				if(deleteResult==-1){
+					alert("DB 에 파일 정보가 존재하지 않음!");
+				}else if(deleteResult==-2){
+					alert("디스크에 파일이 존재하지 않음!");
+				}else if(deleteResult > 0){
+					alert("Template 삭제 완료!");
+				}
+				search();
+			}
+		});
+	}
+</script>
+
+
+<!-- Page import scripts -->
+
+<!-- Page script -->
+<script>
+var pageNum = 1;
+var onLoad = true;
+
+var app = new Vue({
+	name: 'EmployeeList',
+	el: '#accountListContent',
+	data: {
+		pageHeader: {
+			title: 'Template 자료실',
+			description: 'Template 양식 관리 Page',
+			breadcrumb: '<li><a href="/dashboard"><i class="fa fa-home"></i> Home</a></li><li>자료실</li><li class="active">문서자료실</li>'
+		}
+	}
+});
+</script>
+</body>
+</html>

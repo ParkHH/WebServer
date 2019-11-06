@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<property resource="application.properties" />
+	<include resource="org/springframework/boot/logging/logback/base.xml" />
+
+	<!-- Spring Framework -->
+	<logger name="org.springframework" level="info" />
+
+	<!-- JDBC -->
+	<logger name="log4jdbc.debug" level="info" />
+
+	<logger name="jdbc.sqlonly" level="debug" />
+	<logger name="jdbc.sqltiming" level="OFF" />
+	<logger name="jdbc.audit" level="OFF" />
+	<logger name="jdbc.resultset" level="OFF" />
+	<logger name="jdbc.resultsettable" level="debug" />
+	<logger name="jdbc.connection" level="OFF" />
+
+	<root level="info">
+		<appender-ref ref="CONSOLE" />
+	</root>
+</configuration>
