@@ -4,9 +4,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix="otp")
 public class OtpProperties {
-	private String serialNumber = "6HBZYWZUGA27C4U2";
-	private String user_name = "deepcore";
-	private String hostName = "gbridge.com";
+	private String serialNumber = "";
+	private String user_name = "";
+	private String hostName = "";
 	
 	public String getSerialNumber() {
 		return serialNumber;
