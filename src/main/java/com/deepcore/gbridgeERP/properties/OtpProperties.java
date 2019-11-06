@@ -4,9 +4,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix="otp")
 public class OtpProperties {
-	private String serialNumber = "";
-	private String user_name = "";
-	private String hostName = "";
+	private String serialNumber = "";			//OTP 계정 SerialNo
+	private String user_name = "";				//OTP 계정 이름
+	private String hostName = "";				//host 이름 
 	
 	public String getSerialNumber() {
 		return serialNumber;
