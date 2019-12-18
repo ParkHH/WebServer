@@ -81,7 +81,7 @@
           <td><img src="https://blogfiles.pstatic.net/MjAxOTEyMThfNjUg/MDAxNTc2Njc4MzM3NDE1.oUxKdTXeh9qUmN92hBT2EavA4FVMHCKGdgimXLcXrBsg.U2eC9F1djccV6mfa3VnzH4GgobnLbj-q23OPrcsa8LYg.PNG.phh_92/template.png?type=w1" width="500px"/></td>
         </tr>
      </table>
-     <table style="width:1000px">
+     <table width="100">
         <tr>
           <td colspan=2 align="center"><b>게시판상세</b></td>
           <tr>
