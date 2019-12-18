@@ -83,13 +83,13 @@
      </table>
      <table width="100">
         <tr>
-          <td colspan=2 align="center"><b>게시판상세</b></td>
+          <td align="center"><b>게시판상세</b></td>
           <tr>
-            <td colspan=2 align="center"><b>일반자료실</b></td>
+            <td align="center"><b>일반자료실</b></td>
           </tr>
         </tr>
         <tr>
-          <td colspan=2><img src="https://blogfiles.pstatic.net/MjAxOTEyMThfOTcg/MDAxNTc2Njc4MzM2NjYy.8H35UDU82n0HUYh8d2AzvExH8tno_1Ax9EVw9Ynzbssg.MkLj4s-VMgncqBpbHtMEzv7WiBYJ18whGtA-U7AMZMog.PNG.phh_92/generalDocumentDetail.png?type=w1" width=500px/></td>          
+          <td><img src="https://blogfiles.pstatic.net/MjAxOTEyMThfOTcg/MDAxNTc2Njc4MzM2NjYy.8H35UDU82n0HUYh8d2AzvExH8tno_1Ax9EVw9Ynzbssg.MkLj4s-VMgncqBpbHtMEzv7WiBYJ18whGtA-U7AMZMog.PNG.phh_92/generalDocumentDetail.png?type=w1" width=500px/></td>          
         </tr>
       </table>
     </ul>
